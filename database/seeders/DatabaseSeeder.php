@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            RolesSeeder::class,  // Deve rodar ANTES dos seeders que dependem de usuários
             CategorySeeder::class,
             ProductSeeder::class,
             PermissionSeeder::class,

@@ -3,6 +3,7 @@
 use App\Http\Middleware\ACLMiddleware;
 use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\SuperAdmin;
+use App\Http\Middleware\TenantMiddleware;
 use App\Http\Middleware\TokenFromQuery;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -55,8 +56,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
 
-        // Seus aliases
+        // Aliases de middleware
         $middleware->alias([
+            'tenant'       => TenantMiddleware::class,
             'acl'          => ACLMiddleware::class,
             'admin'        => CheckAdmin::class,
             'superadmin'   => SuperAdmin::class,
