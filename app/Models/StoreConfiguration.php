@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Tenant;
 
 class StoreConfiguration extends Model
 {
     protected $fillable = [
+        'tenant_id',
         // Melhor Envio
         'melhor_envio_token',
         'melhor_envio_app_secret',
@@ -92,11 +94,43 @@ class StoreConfiguration extends Model
         'mail_port'                    => 'integer',
     ];
 
+    // ─── Relacionamentos ──────────────────────────────────────────────────────
+
+    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
     /**
-     * Retorna a configuração singleton (cria registro vazio se não existir).
+     * Retorna a configuração do contexto atual:
+     * - Dentro de um tenant: configuração específica do tenant (ou cria uma vazia)
+     * - Fora de tenant (plataforma): configuração global (tenant_id = null)
      */
     public static function current(): static
     {
-        return static::firstOrCreate([]);
+        if (app()->bound('tenant')) {
+            $tenantId = app('tenant')->id;
+            return static::firstOrCreate(['tenant_id' => $tenantId]);
+        }
+
+        return static::firstOrCreate(['tenant_id' => null]);
+    }
+
+    /**
+     * Retorna (ou cria) a configuração de um tenant específico pelo ID.
+     */
+    public static function forTenant(string $tenantId): static
+    {
+        return static::firstOrCreate(['tenant_id' => $tenantId]);
+    }
+
+    /**
+     * Retorna a configuração global da plataforma (tenant_id = null).
+     */
+    public static function platform(): static
+    {
+        return static::firstOrCreate(['tenant_id' => null]);
     }
 }

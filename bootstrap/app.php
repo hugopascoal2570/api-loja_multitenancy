@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\ACLMiddleware;
 use App\Http\Middleware\CheckAdmin;
+use App\Http\Middleware\PlanFeature;
+use App\Http\Middleware\PlatformSuperAdmin;
 use App\Http\Middleware\SuperAdmin;
 use App\Http\Middleware\TenantMiddleware;
 use App\Http\Middleware\TokenFromQuery;
@@ -58,11 +60,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Aliases de middleware
         $middleware->alias([
-            'tenant'       => TenantMiddleware::class,
-            'acl'          => ACLMiddleware::class,
-            'admin'        => CheckAdmin::class,
-            'superadmin'   => SuperAdmin::class,
-            'token.query'  => TokenFromQuery::class,
+            'tenant'              => TenantMiddleware::class,
+            'acl'                 => ACLMiddleware::class,
+            'admin'               => CheckAdmin::class,
+            'superadmin'          => SuperAdmin::class,
+            'token.query'         => TokenFromQuery::class,
+            'platform.superadmin' => PlatformSuperAdmin::class,
+            'plan.feature'        => PlanFeature::class,
         ]);
 
         // TokenFromQuery precisa rodar antes do auth:sanctum (Authenticate tem prioridade alta por padrão)

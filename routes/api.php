@@ -38,12 +38,17 @@ use App\Http\Controllers\Api\ShippingManagementController;
 use App\Http\Controllers\Api\MelhorEnvioWebhookController;
 use App\Http\Controllers\Api\CounterSaleController;
 use App\Http\Controllers\Api\BarcodeController;
+use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\Admin\NewsletterController;
 use App\Http\Controllers\Api\MercadoLivreAuthController;
 use App\Http\Controllers\Api\MercadoLivreController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\Api\SuperAdmin\TenantController as SuperAdminTenantController;
+use App\Http\Controllers\Api\SuperAdmin\PlanController as SuperAdminPlanController;
+use App\Http\Controllers\Api\SuperAdmin\TenantUserController as SuperAdminTenantUserController;
+use App\Http\Controllers\Api\SuperAdmin\TenantConfigurationController as SuperAdminTenantConfigurationController;
 use Illuminate\Http\Request;
 
 // Autenticação
@@ -58,6 +63,61 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthApiController::class, 'me'])->name('auth.me');
     Route::post('/logout', [AuthApiController::class, 'logout'])->name('auth.logout');
+});
+
+// ============ PAINEL SUPER ADMIN DA PLATAFORMA ============
+// Acesso exclusivo ao super admin. NÃO usa middleware 'tenant' (sem contexto de loja).
+// Login: POST /api/auth (sem domínio de tenant no host) → token com ability "context:platform_super_admin"
+Route::middleware(['auth:sanctum', 'platform.superadmin'])
+    ->prefix('superadmin')
+    ->name('superadmin.')
+    ->group(function () {
+
+    // ── Planos ────────────────────────────────────────────────────────────────
+    Route::get('/plans/features', [SuperAdminPlanController::class, 'features'])->name('plans.features');
+    Route::apiResource('/plans', SuperAdminPlanController::class)->names([
+        'index'   => 'plans.index',
+        'store'   => 'plans.store',
+        'show'    => 'plans.show',
+        'update'  => 'plans.update',
+        'destroy' => 'plans.destroy',
+    ]);
+
+    // ── Tenants ───────────────────────────────────────────────────────────────
+    Route::post('/tenants/{tenant}/activate', [SuperAdminTenantController::class, 'activate'])->name('tenants.activate');
+    Route::post('/tenants/{tenant}/deactivate', [SuperAdminTenantController::class, 'deactivate'])->name('tenants.deactivate');
+
+    // Gerenciamento de domínios do tenant
+    Route::post('/tenants/{tenant}/domains', [SuperAdminTenantController::class, 'addDomain'])->name('tenants.domains.store');
+    Route::delete('/tenants/{tenant}/domains/{domain}', [SuperAdminTenantController::class, 'removeDomain'])->name('tenants.domains.destroy');
+    Route::put('/tenants/{tenant}/domains/{domain}/set-primary', [SuperAdminTenantController::class, 'setPrimaryDomain'])->name('tenants.domains.set-primary');
+
+    Route::apiResource('/tenants', SuperAdminTenantController::class)->names([
+        'index'   => 'tenants.index',
+        'store'   => 'tenants.store',
+        'show'    => 'tenants.show',
+        'update'  => 'tenants.update',
+        'destroy' => 'tenants.destroy',
+    ]);
+
+        Route::middleware('auth:sanctum')->prefix('wishlist')->name('wishlist.')->group(function () {
+        Route::get('/', [WishlistController::class, 'index'])->name('index');
+        Route::post('/{productId}', [WishlistController::class, 'store'])->name('store');
+        Route::delete('/{productId}', [WishlistController::class, 'destroy'])->name('destroy');
+        Route::post('/{productId}/toggle', [WishlistController::class, 'toggle'])->name('toggle');
+        Route::get('/{productId}/check', [WishlistController::class, 'check'])->name('check');
+    });
+
+    // ── Configurações do Tenant ───────────────────────────────────────────────
+    Route::get('/tenants/{tenant}/configuration', [SuperAdminTenantConfigurationController::class, 'show'])->name('tenants.configuration.show');
+    Route::put('/tenants/{tenant}/configuration', [SuperAdminTenantConfigurationController::class, 'update'])->name('tenants.configuration.update');
+    Route::delete('/tenants/{tenant}/configuration', [SuperAdminTenantConfigurationController::class, 'destroy'])->name('tenants.configuration.destroy');
+
+    // ── Usuários / Staff dos Tenants ──────────────────────────────────────────
+    Route::get('/tenants/{tenant}/users', [SuperAdminTenantUserController::class, 'index'])->name('tenants.users.index');
+    Route::post('/tenants/{tenant}/users', [SuperAdminTenantUserController::class, 'store'])->name('tenants.users.store');
+    Route::put('/tenants/{tenant}/users/{user}', [SuperAdminTenantUserController::class, 'update'])->name('tenants.users.update');
+    Route::delete('/tenants/{tenant}/users/{user}', [SuperAdminTenantUserController::class, 'destroy'])->name('tenants.users.destroy');
 });
 
     Route::middleware('throttle:30,1')->prefix('cart')->group(function () {

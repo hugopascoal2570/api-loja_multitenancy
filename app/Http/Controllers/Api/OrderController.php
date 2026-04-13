@@ -112,7 +112,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'status'          => 'nullable|in:pending,approved,rejected,cancelled,refunded,shipped,delivered',
-            'source'          => 'nullable|in:online,counter',
+            'source'          => 'nullable|in:online,counter,mercadolivre',
             'delivery_method' => 'nullable|in:counter,excursion,pickup,shipping',
             'period'          => 'nullable|in:24h,7d,30d,all',
         ]);

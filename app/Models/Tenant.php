@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -15,7 +16,7 @@ class Tenant extends Model
         'name',
         'slug',
         'is_active',
-        'plan',
+        'plan_id',
     ];
 
     protected $casts = [
@@ -23,6 +24,11 @@ class Tenant extends Model
     ];
 
     // ─── Relacionamentos ──────────────────────────────────────────────────────
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
 
     public function domains(): HasMany
     {
@@ -59,6 +65,14 @@ class Tenant extends Model
             ->where('user_id', $user->id)
             ->where('is_active', true)
             ->exists();
+    }
+
+    public function hasFeature(string $feature): bool
+    {
+        if (! $this->plan_id) {
+            return false;
+        }
+        return $this->plan?->hasFeature($feature) ?? false;
     }
 
     public function getUrlAttribute(): string

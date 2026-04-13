@@ -54,6 +54,8 @@ class OrderRepository
             $query->where('source', 'counter')->whereNull('excursion_info');
         } elseif ($source === 'online') {
             $query->where('source', 'online');
+        } elseif ($source === 'mercadolivre') {
+            $query->where('source', 'mercadolivre');
         }
 
         // delivery_method=excursion OU presença de excursion_info

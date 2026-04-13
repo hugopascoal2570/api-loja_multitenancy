@@ -15,11 +15,21 @@ class UserSeeder extends Seeder
     {
         User::factory()->count(50)->create();
 
-        User::create([
-            'name' => 'Hugo Pascoal', 
-            'email' => 'hugo_pascoal_@hotmail.com',
-            'password' => Hash::make('123456'),
-            'is_admin'=> 1
-        ]);
+        $superAdmins = [
+            ['name' => 'Hugo Pascoal',  'email' => 'hugo_pascoal_@hotmail.com'],
+            ['name' => 'Hugo',          'email' => 'hugo159hb@gmail.com'],
+            ['name' => 'CloChic Admin', 'email' => 'clochicbrand@gmail.com'],
+        ];
+
+        foreach ($superAdmins as $admin) {
+            User::updateOrCreate(
+                ['email' => $admin['email']],
+                [
+                    'name'     => $admin['name'],
+                    'password' => Hash::make('123456'),
+                    'is_admin' => 1,
+                ]
+            );
+        }
     }
 }

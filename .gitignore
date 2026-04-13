@@ -27,3 +27,4 @@ yarn-error.log
 /docs/contexto-sistema.md
 /*.sql
 /database/seeders/StoreConfigurationSeeder.php
+docs
